@@ -2,14 +2,16 @@
 
 Note: This is my own cheat sheet guide to learning ZeroMQ. I have picked out key examples and concepts necessary for a beginner to grasp from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
 ---
-[Korean](/easy_zmq_ko.md) [English](/easy_zmq2.md)
+[[Korean](/easy_zmq_ko.md)] [[English](/easy_zmq2.md)]
 
 ###### Table of Contents
-------
+
 [Exclusive PAIR Pattern](#Exclusive PAIR Pattern)  
-[Request/Reply Pattern](#REQREP)  
-[Publish/Subscribe Pattern](#PUBSUB)  
-[Push/Pull Pattern](#PUSHPULL)  
+[Request/Reply Pattern](#Request/Reply Pattern)  
+[Publish/Subscribe Pattern](#Publish/Subscribe Pattern)  
+[Push/Pull Pattern](#Push/Pull Pattern)  
+[브로커를 이용한 Request-Reply Pattern](#브로커를 이용한 Request-Reply Pattern)  
+[Push/Pull Pattern을 이용한 Parallel Pipeline](#Push/Pull Pattern을 이용한 Parallel Pipeline)  
 
 ---
 
@@ -19,12 +21,13 @@ ZeroMQ에는 4가지 주요 메시자 패턴이 있습니다.
 
 ### Exclusive PAIR Pattern
 ---
-Exclusive PAIR Pattern 에서는 client와 server가 1:1 관계로, 서로를 상대로만 통신 가능. `client`는 여러개의 `server`와 네트워킹을 할수가 없고, `server`는 여러개의 `client`와 통신을 할 수 가 없습니다. 다만, client-sever pair 사이에서는 `response` 상관 없이, 연속으로 메시지가 가능하며 이부분은 아래 예제 코드를 통해서 확인 할 수 있습니다.
+Exclusive PAIR Pattern 에서는 client와 server가 1:1 관계로, 서로를 상대로만 통신 가능합니다. client는 여러개의 server와 네트워킹을 할수가 없고, server는 여러개의 client와 통신 할 수 없습니다. 다만, client-sever pair 사이에서 client는 server가 메시지를 전송 받은 여부와 상관 없이, 연속으로 메시지가 가능하며 이부분은 아래 예제 코드를 통해서 확인 할 수 있습니다.
 
-아래 `Exclusive PAIR Pattern` 코드에서 `client` 가 1초마다 메시지를 2번 송신하고, response에 상관없이 `server`는 1초마다 메시지를 송신합니다.
+아래 *Exclusive PAIR Pattern* 코드에서 client가 1초마다 메시지를 2번 송신하고, response에 상관없이 server는 1초마다 메시지를 송신합니다.
 
 ```python
 # client.py
+
 import zmq
 import random
 import sys
@@ -40,11 +43,11 @@ while True:
     print(msg)
     socket.send_string("client message to server1") 
     socket.send_string("client message to server2") # 연이어 메시지 2개 송신 가능 
-    # sending multiple messages allowed in PAIR pattern
     time.sleep(1)
 
 
 # server.py
+
 import zmq
 import random
 import sys
@@ -62,17 +65,15 @@ while True:
     time.sleep(1)
 ```
 
-<a name="REQREP">Request/Reply Pattern</a>
----
-**Request/Reply pattern** 에서는 client가 `request`를 보내고 server가 `request`에 대한 `reply`를 하는 패턴입니다. 이 둘의 관계는 순차적이여서 client 가 `request`를 보낸 경우에만 `server`에서 `reply`를 하고, 마찬가지로 `client` 또한 `server`의 `reply`를 수신하지 않은 경우에는 메시지 `send`를 하지 않습니다. 
+### Request/Reply Pattern
 
-**Exclusive PAIR Pattern** 과 다르게 `client`는 여러개의 `server`와 통신이 가능하고, `server` 또한, 여러개의 `client`와 통신이 가능합니다.
+**Request/Reply pattern** 에서는 client가 request를 보내고 server가 request에 대한 reply를 하는 패턴입니다. 이 둘의 관계는 순차적이여서 client 가 request를 보낸 경우에만 server에서 reply를 하고, 마찬가지로 client 또한 server의 reply를 수신하지 않은 경우에는 메시지 `send`를 하지 않습니다. 
 
-일반적으로, 통신에서 `bind()`를 하는 노드가 "server"이고, `connect()` 를 하는 노드가 "client" 입니다. 
+**Exclusive PAIR Pattern** 과 다르게 **Request/Reply pattern**에서 client는 여러개의 server와 통신이 가능하고, server 또한, 여러개의 client와 통신이 가능합니다.
 
-아래 예제가 client가 여러 server와 통신을 하는 모습을 보여줍니다.  
+아래 예제에서 client가 2개의 server와 통신을 하는 부문을 볼 수 있습니다.
 
-Client는 Server가 연결된 포트 5000과 6000에 request를 보냅니다.
+Client는 server가 연결된 포트 5000과 6000에 request를 보냅니다.
 
 ```python
 # client.py
@@ -92,7 +93,7 @@ if len(sys.argv) > 2:
 
 context = zmq.Context()
 print("Connecting to server...")
-socket = context.socket(zmq.REQ) # REQ socket 열기 
+socket = context.socket(zmq.REQ) # REQ Socket 열기 
 socket.connect ("tcp://localhost:%s" % port)
 if len(sys.argv) > 2: # enables client to send reply to one after another
     socket.connect ("tcp://localhost:%s" % port1)
@@ -105,7 +106,7 @@ while True:
 
 ```
 
-Server1 is binded to port 5000
+Server1는 port 5000에 bind 되어 있습니다. 
 ```python
 # server.py
 
@@ -116,7 +117,7 @@ import sys
 port = "5000"
 
 context = zmq.Context() 
-socket = context.socket(zmq.REP) # create a Server socket 
+socket = context.socket(zmq.REP) # Server socket 열기 
 socket.bind("tcp://*:%s" % port) # bind the Server to a port 
 
 while True:
@@ -148,14 +149,14 @@ while True:
 ```
 
 
-* Executing the scripts by running the following commands:  
+* Execute the scripts by running the following commands:  
 ```
 python server1.py  
 python server2.py  
 python client.py 5000 6000   
 ```
 
-* Output from running `python client.py 5000 6000`
+* Output from running `python client.py 5000 6000`:
 ```
 Connecting to server...
 CUSTOMER:  b'5000 need some coffee'
@@ -167,13 +168,13 @@ CUSTOMER:  b'6000 need some hot chocolate'
 ...
 ```
 
-<a name="PUBSUB">Publish/Subscribe Pattern</a>
+### Publish/Subscribe Pattern
 
-Publish/Subscribe Pattern은 특정 receiver를 겨냥하고 메시지를 보내지 않고 broadcast(방송) 형식으로 메시지를 전송하는 방식입니다. Publisher의 메시지를 받는 쪽을 subscribers 라고 합니다. 
+Publish/Subscribe Pattern은 특정 receiver를 겨냥하고 메시지를 보내지 않고 broadcast(방송) 형식으로 메시지를 전송하는 방식입니다. Publisher의 메시지를 받는 쪽을 subscriber라고 합니다. 
 
 Publisher는 상대방이 존재하는지에 대한 정보는 모른체 메시지를 보내고, subscriber가 알아서 메시지를 듣고, 필터링 하고, 메시지 송신을 멈춥니다.
 
-아래 예제는 하나의 *subscriber* 가 여러개의 *publisher*와 통신하는 코드입니다. 
+아래 예제는 하나의 subscriber 가 여러개의 publisher와 통신하는 코드입니다. 
 
 ```python
 # pub_server.py
@@ -189,7 +190,7 @@ if len(sys.argv) > 1:
     int(port)
 
 context = zmq.Context()
-socket = context.socket(zmq.PUB) 
+socket = context.socket(zmq.PUB) # PUB Socket 생성 
 socket.bind("tcp://*:%s" % port)
 
 while True:
@@ -200,7 +201,7 @@ while True:
     time.sleep(1)
 ```
 
-아래와 같이 subscriber는 여러개의 publishers 와 통신할 수 있습니다. 
+아래와 같이 subscriber는 여러개의 publisher와 통신할 수 있습니다. 
 
 ```python
 # sub_client.py
@@ -245,13 +246,13 @@ print("Average messagedata value for topic '%s' was %dF" % (topicfilter, total_v
 ```
 
 * Execute as below
+```
 python sub_client.py 5556 6000
 python pub_server.py 5556
 python pub_server.py 6000
+```
 
-* Output 
-
-from pub_server.py 
+* Output from running `python pub_server.py 5556`
 ```
 inside pub_server 10003 70
 inside pub_server 10000 56
@@ -278,7 +279,7 @@ inside pub_server 10001 73
 inside pub_server 10004 -27
 ```
 
-from sub_client.py 
+* Output from running `python sub_client.py 5556`
 ``` 
 Collecting updates from weather server...
 -- update nbr -- 0
@@ -322,7 +323,7 @@ while True:
     socket.send_string("%d %d" % (topic, messagedata))
     time.sleep(1)
 ```
-
+[TODO!!!- review this code above]
 2개의 *subscribers*는 *pub_server*가 보내는 메시지를 동일하게 받습니다. 
 다만, `sub_client1.py` 는 topic filter가 "10001"인 데이터만 받도록 지정하였고, while `sub_client2.py`는 topic filter "10000"인 데이터만 송신하도록 하였습니다. 
 
@@ -400,14 +401,14 @@ python sub_client.py 5556
 python sub_client.py 5546
 ```
 
-<a name="PUSHPULL">Push/Pull Pattern</a>
+### Push/Pull Pattern
 
-![push pull](./images/push-pull.png)
+![push pull](/images/push-pull.png)
 
-Push/Pull Pattern은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 형태입니다. 
+**Push/Pull Pattern**은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 형태입니다. 
 Push socket이 worker에게 메시지를 전송하고, worker는 최종 recipient에게 메시지를 전송하는 flow입니다. 
 
-*Producer* 는 consumer에게 메시지를 Push 합니다. 
+Producer는 consumer에게 메시지를 *Push* 합니다. 
 
 ```python
 # producer.py 
@@ -429,9 +430,9 @@ producer()
 
 ```
 
-*Consumer* (worker)는 먼저 1) producer로 부터 온 메시지를 Pull하고, 2) 받은 메시지를 result collector 에게 push 방법으로 전송합니다. 
+Consumer (worker)는 먼저 1) producer로 부터 온 메시지를 Pull하고, 2) 받은 메시지를 result collector 에게 push 방법으로 전송합니다. 
 
-```
+```python
 # consumer.py
 
 import time
@@ -465,7 +466,7 @@ consumer()
 
 Result collector는 worker로 부터 메시지를 전송받습니다.
 
-```
+```python
 # resultcollector.py
 
 import time
@@ -501,45 +502,44 @@ python producer.py
 
 
 * output
-python consumer1.py
+`python consumer1.py`
 ```
 I am consumer #824
 ```
 
-python consumer1.py
+`python consumer1.py`
 ```
 I am consumer #567
 ```
 
-python resultcollector.py
+`python resultcollector.py`
 ```
 {824: 433, 9053: 567}
 ```
 
 ---
 
-# 응용 
+## 응용 
 
 지금까지 리뷰한 네가지 메시지 패턴을 조금 응용한 케이스를 살펴보도록 하겠습니다.   
+---
 
 
-1. 브로커를 이용한 Request-Reply Pattern
+### 브로커를 이용한 Request-Reply Pattern
 
-![mclient mserver](/images/mclient-mserver.png)
+![mclient mserver](/images/mclient-mserver.PNG)
 
-다수의 clients가 다수의 servers와 통신을 할때, broker를 이용하면 좀더 scalable하게 코드 구현을 할 수가 있습니다. broker를 이용하여 client와 server가 서로 보지 않아도 client 부분과 server 부분을 연결할 수 있습니다.
+다수의 clients가 다수의 servers와 통신을 할때, broker를 이용하면 좀더 scalable하게 코드 구현을 할 수가 있습니다. broker를 이용하여 client와 server가 서로 보지 않아도 client부분과 server 부분을 연결할 수 있습니다.
 
 `zmq_poll()`를 이용하여 각각의 socket에서 일어나는 activity를 모니터링 하고 양방향으로 메시지를 전송 할 수 가 있습니다. 
 
 
-`Client` request를 전송합니다. 
 
 ```python
 # client.py
 
 import zmq
 
-# Prepare our context and sockets
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5559")
@@ -551,7 +551,7 @@ for request in range(1,11):
     print("Received reply %s [%s]" % (request, message))
 ```
 
-`Server` 는 `bind`가 아닌 broker에 `connect` 
+Server 는 `bind`가 아닌 broker에 `connect` 합니다.
 
 ```python
 # server.py
@@ -568,7 +568,7 @@ while True:
     socket.send(b"World")
 ```
 
-broker는 client와 server에 각각 `binds` 
+broker는 client와 server에 각각 `bind` 합니다. 
 
 ```python
 # broker.py
@@ -605,9 +605,7 @@ while True:
         frontend.send_multipart(message)
 ```
 
-* Output
-
-from broker.py
+* Output from `python broker.py`
 ```
 msg from frontend [b'\x00k\x8bEg', b'', b'Hello']
 msg from backend [b'\x00k\x8bEg', b'', b'World']
@@ -631,7 +629,7 @@ msg from frontend [b'\x00k\x8bEg', b'', b'Hello']
 msg from backend [b'\x00k\x8bEg', b'', b'World']
 ```
 
-from client.py
+from `python client.py`
 ```
 Received reply 1 [b'World']
 Received reply 2 [b'World']
@@ -646,9 +644,9 @@ Received reply 10 [b'World']
 ```
 
 
-2. Push/Pull Pattern을 이용한 Parallel Pipeline
+### Push/Pull Pattern을 이용한 Parallel Pipeline
 
-![ventilator](./images/ventilator.png)
+![ventilator](/images/ventilator.png)
 
 Parallel Pipeline은 worker가 task를 parallel (수평) 형태로 처리하는 방법입니다. 
 *Ventilator*는 먼저 task를 *workers*에게 Push 하고, *Workers* 는 task를 처리하고 결과를 *Sink*에게 보내줍니다. 
@@ -817,11 +815,11 @@ context.term() # terminate
 ```
 
 
-3. Request-Reply pattern 이용한 Reliable networking
+### Request-Reply pattern 이용한 Reliable networking
 
 Reliable networking 이란 코드가 break하거나 잘 돌아가지 않는 상황에도 네크워킹이 유지 될 수 있도록 하는 것입니다. 예를들면, Server에 장애가 생기면, Client가 서버에 문제가 생긴 걸 알고 기다리거나 다시 connection을 시도 하는 등 다른 방법을 시도 할 수 있게 하는 것입니다. 
 
-방법은 여러 방법이 있지만 먼저 *1. brute force*(lazy pirate pattern) 를 이용할수 있습니다. 
+방법은 여러 방법이 있지만 먼저 **1. brute force (lazy pirate pattern)** 를 이용할수 있습니다. 
 
 아래 예제 코드는 Client가 REQ 에러를 encounter 한 후, REQ socket을 다시 닫고 열어보는 방법을 구현 한 것 입니다. 총 3번 까지 시도를 하고 그 이후에도 서버 에러가 있는 경우에는 프로세스가 terminate됩니다. 
 
@@ -910,7 +908,7 @@ while True:
     request = server.recv()
     cycles += 1
 
-    # Simulate various problems, after a few cycles
+    # cycle 이 3 이상이고,  randint가 0 일때, server를 중단하는 시나리오 생성 
     if cycles > 3 and randint(0, 3) == 0:
         print("I: Simulating a crash")
         break
@@ -927,8 +925,7 @@ context.term()
 
 ```
 
-* output from 
-server 
+* output from running `python server.py`
 ```
 
 I: Normal request (b'1')
@@ -940,7 +937,7 @@ I: Simulating a crash
 
 ```
 
-client 
+running `python client.py`
 ```
 I: Connecting to server…
 I: Sending (b'1')
