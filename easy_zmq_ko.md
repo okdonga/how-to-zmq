@@ -2,20 +2,22 @@
 
 Note: This is my own cheat sheet guide to learning ZeroMQ. I have picked out key examples and concepts necessary for a beginner to grasp from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
 ---
-[Korean] [English]
+[Korean](/easy_zmq_ko.md) [English](/easy_zmq2.md)
 
 ###### Table of Contents
 ------
-[Exclusive PAIR Pattern](#PAIR)
-[Request/Reply Pattern](#REQREP)
-[Publish/Subscribe Pattern](#REQREP)
-[Push/Pull Pattern](#PUSHPULL)
+[Exclusive PAIR Pattern](#Exclusive PAIR Pattern)  
+[Request/Reply Pattern](#REQREP)  
+[Publish/Subscribe Pattern](#PUBSUB)  
+[Push/Pull Pattern](#PUSHPULL)  
+
 ---
 
 ## 4가지 주요 메시지 패턴
 ZeroMQ에는 4가지 주요 메시자 패턴이 있습니다.
 
-<a name="PAIR">Exclusive PAIR Pattern</a>
+
+### Exclusive PAIR Pattern
 ---
 Exclusive PAIR Pattern 에서는 client와 server가 1:1 관계로, 서로를 상대로만 통신 가능. `client`는 여러개의 `server`와 네트워킹을 할수가 없고, `server`는 여러개의 `client`와 통신을 할 수 가 없습니다. 다만, client-sever pair 사이에서는 `response` 상관 없이, 연속으로 메시지가 가능하며 이부분은 아래 예제 코드를 통해서 확인 할 수 있습니다.
 
@@ -398,7 +400,7 @@ python sub_client.py 5556
 python sub_client.py 5546
 ```
 
-<a name="PUBSUB">Push/Pull Pattern</a>
+<a name="PUSHPULL">Push/Pull Pattern</a>
 
 ![push pull](./images/push-pull.png)
 
