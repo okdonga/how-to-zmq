@@ -403,7 +403,7 @@ python sub_client.py 5546
 
 ### Push/Pull Pattern
 
-![push pull](/images/push-pull.png)
+![push pull](/images/push-pull.PNG)
 
 **Push/Pull Pattern**은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 형태입니다. 
 Push socket이 worker에게 메시지를 전송하고, worker는 최종 recipient에게 메시지를 전송하는 flow입니다. 
@@ -646,7 +646,7 @@ Received reply 10 [b'World']
 
 ### Push/Pull Pattern을 이용한 Parallel Pipeline
 
-![ventilator](/images/ventilator.png)
+![ventilator](/images/ventilator.PNG)
 
 Parallel Pipeline은 worker가 task를 parallel (수평) 형태로 처리하는 방법입니다. 
 *Ventilator*는 먼저 task를 *workers*에게 Push 하고, *Workers* 는 task를 처리하고 결과를 *Sink*에게 보내줍니다. 
@@ -961,7 +961,7 @@ W: No response from server, retrying…
 E: Server seems to be offline, abandoning
 ```
 
-brute-force의 장점은 비교적 구현하기 쉽다는 장점이 있고, ZeroMQ가 자동적으로 reconnection을 시도하지만, 다른 유효한 Server로 이동하거나, 다른 백업 방안을 강구하지는 않는 단점이 있습니다.
+Brute-force의 장점은 비교적 구현하기 쉽다는 장점이 있고, ZeroMQ가 자동적으로 reconnection을 시도하지만, 다른 유효한 Server로 이동하거나, 다른 백업 방안을 강구하지는 않는 단점이 있습니다.
 다른 방안으로는, 2. Basic Reliable Queuing (Simple Pirate Pattern), 3. Paranoid Reliable Queuing (Paranoid Pirate Pattern) 등 이 있습니다. 
 
 
