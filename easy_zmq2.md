@@ -21,6 +21,7 @@ There are four main types of messaging patterns in ZeroMQ.
 In Exclusive PAIR Pattern, there is only one connected peer. So a client can't connect to many servers or vice versa. However, pair can send any number of sequential messages to each other unlike REQ-REP, which we will talk about later, which has to wait for the response before sending out each message. 
 
 Illustratin of Exclusive PAIR Pattern is shown below as follows: 
+
 Client sends messages every second, and independent of this, server sends its own message every second.
 
 ```python
