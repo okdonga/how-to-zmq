@@ -1,6 +1,6 @@
 # A beginner's guide to ZeroMQ 
 
-Note: I have prepared this simple guide to learning ZeroMQ for beginners. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
+<!--Note: I have prepared this simple guide to learning ZeroMQ for beginners. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. -->
 ---
 [[Korean](/easy_zmq_ko.md)] [[English](/easy_zmq2.md)]
 
@@ -12,9 +12,9 @@ Note: I have prepared this simple guide to learning ZeroMQ for beginners. The ke
 [Push/Pull Pattern](#Push/Pull Pattern)  
 [브로커를 이용한 Request-Reply Pattern](#브로커를 이용한 Request-Reply Pattern)  
 [Push/Pull Pattern을 이용한 Parallel Pipeline](#Push/Pull Pattern을 이용한 Parallel Pipeline)  
-
 ---
-## ZeroMQ?
+
+## ZeroMQ
 * 가볍고 빠른 queue-based messaging library
 * 30개 이상의 언어에서 사용 가능 
 
@@ -29,7 +29,7 @@ ZeroMQ에는 4가지 주요 메시지 패턴이 있습니다.
 
 Exclusive PAIR Pattern 에서는 client와 server가 1:1 관계로, 서로를 상대로만 통신 가능합니다. client는 여러개의 server와 네트워킹을 할수가 없고, server는 여러개의 client와 통신 할 수 없습니다. 다만, client-sever pair 사이에서 client는 server가 메시지를 전송 받은 여부와 상관 없이, 연속으로 메시지가 가능하며 이부분은 아래 예제 코드를 통해서 확인 할 수 있습니다.
 
-아래 *Exclusive PAIR Pattern* 코드에서 client가 1초마다 메시지를 2번 송신하고, response에 상관없이 server는 1초마다 메시지를 송신합니다.
+아래 **Exclusive PAIR Pattern** 코드에서 client가 1초마다 메시지를 2번 송신하고, response에 상관없이 server는 1초마다 메시지를 송신합니다.
 
 ```python
 # client.py
@@ -50,8 +50,9 @@ while True:
     socket.send_string("client message to server1") 
     socket.send_string("client message to server2") # 연이어 메시지 2개 송신 가능 
     time.sleep(1)
+```
 
-
+```python
 # server.py
 
 import zmq
@@ -81,7 +82,7 @@ while True:
 
 아래 예제에서 client가 2개의 server와 통신을 하는 부문을 볼 수 있습니다.
 
-Client는 server가 연결된 포트 5000과 6000에 request를 보냅니다.
+Client는 server1과 server2가 연결된 포트 5000과 6000에 request를 보냅니다.
 
 ```python
 # client.py
@@ -105,6 +106,7 @@ socket = context.socket(zmq.REQ) # REQ Socket 열기
 socket.connect ("tcp://localhost:%s" % port)
 if len(sys.argv) > 2: # enables client to send reply to one after another
     socket.connect ("tcp://localhost:%s" % port1)
+    # port 5000 & 6000 동시에 연결
 
 
 while True: 
@@ -116,7 +118,7 @@ while True:
 
 Server1는 port 5000에 bind 되어 있습니다. 
 ```python
-# server.py
+# server1.py
 
 import zmq
 import time
@@ -178,11 +180,15 @@ CUSTOMER:  b'6000 need some hot chocolate'
 
 ### Publish/Subscribe Pattern
 
-Publish/Subscribe Pattern은 특정 receiver를 겨냥하고 메시지를 보내지 않고 broadcast(방송) 형식으로 메시지를 전송하는 방식입니다. Publisher의 메시지를 받는 쪽을 subscriber라고 합니다. 
+![pub sub](./images/2pub.png)  
+
+**Publish/Subscribe Pattern**은 특정 receiver를 겨냥하고 메시지를 보내지 않고 broadcast(방송) 형식으로 메시지를 전송하는 방식입니다. Publisher의 메시지를 받는 쪽을 subscriber라고 합니다. 
 
 Publisher는 상대방이 존재하는지에 대한 정보는 모른체 메시지를 보내고, subscriber가 알아서 메시지를 듣고, 필터링 하고, 메시지 송신을 멈춥니다.
 
-아래 예제는 하나의 subscriber 가 여러개의 publisher와 통신하는 코드입니다. 
+하나의 publisher가 여러 subscriber에게 broadcast 방법과 여러 publisher가 하나의 subscriber에게 통신하는 방법 등 다양한 통신 방법을 구현할 수 있습니다. 
+
+아래 예제는 위의 그림과 같이 하나의 subscriber 가 여러개의 publisher와 통신하는 코드입니다. 
 
 ```python
 # pub_server.py
@@ -192,7 +198,6 @@ import random
 import sys
 import time
 
-port = "5556"
 if len(sys.argv) > 1:
     port =  sys.argv[1]
     int(port)
@@ -202,14 +207,14 @@ socket = context.socket(zmq.PUB) # PUB Socket 생성
 socket.bind("tcp://*:%s" % port)
 
 while True:
-    topic = random.randrange(9999,10005)
+    topic = random.randrange(9999,10005) # 9999부터 10005 까지의 랜던 숫자를 Publish
     messagedata = random.randrange(1,215) - 80
     print("%d %d" % (topic, messagedata))
     socket.send_string("%d %d" % (topic, messagedata))
     time.sleep(1)
 ```
 
-아래와 같이 subscriber는 여러개의 publisher와 통신할 수 있습니다. 
+아래와 같이 subscriber는 publisher와 통신하기 위해 여러개의 port에 `connect` 합니다.  
 
 ```python
 # sub_client.py
@@ -217,7 +222,6 @@ while True:
 import sys
 import zmq
 
-port = "5556"
 if len(sys.argv) > 1:
     port =  sys.argv[1]
     int(port)
@@ -253,7 +257,7 @@ print("Average messagedata value for topic '%s' was %dF" % (topicfilter, total_v
 
 ```
 
-* Execute as below
+* Execute the scripts by running the following commands: 
 ```
 python sub_client.py 5556 6000
 python pub_server.py 5556
@@ -302,7 +306,7 @@ b'10001' b'23'
 b'10001' b'73'
 ```
 
-반대로, 여러 subscribers가 publisher의 메시지를 듣고 있을 수 있습니다. 
+반대로, publisher가 여러 subscriber에게 메시지 broadcast를 할 수 있습니다.
 
 ![pub sub](./images/pub-sub.png)
 
