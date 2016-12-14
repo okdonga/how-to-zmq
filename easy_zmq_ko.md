@@ -1,6 +1,6 @@
 # A beginner's guide to ZeroMQ 
 
-<!--Note: I have prepared this simple guide to learning ZeroMQ for beginners. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. -->
+###### Note: I have prepared this simple guide to learning ZeroMQ for beginners to reduce the entry barriers to learning ZeroMQ. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
 ---
 [[Korean](/easy_zmq_ko.md)] [[English](/easy_zmq2.md)]
 
@@ -985,6 +985,5 @@ E: Server seems to be offline, abandoning
 ```
 
 Brute-force의 장점은 비교적 구현하기 쉽다는 장점이 있고, ZeroMQ가 자동적으로 reconnection을 시도하지만, 다른 유효한 Server로 이동하거나, 다른 백업 방안을 강구하지는 않는 단점이 있습니다.
-다른 방안으로는, 2. Basic Reliable Queuing (Simple Pirate Pattern), 3. Paranoid Reliable Queuing (Paranoid Pirate Pattern) 등 이 있습니다. 
-
+다른 방안으로는, 2. Basic Reliable Queuing (Simple Pirate Pattern), 3. Paranoid Reliable Queuing (Paranoid Pirate Pattern) 등 이 있습니다. 이 부분에 대한 자세한 설명은 Chapter 4 of [ZeroMQ official guide](http://zguide.zeromq.org/php:chapter4) 를 참조하시기 바랍니다.
 
