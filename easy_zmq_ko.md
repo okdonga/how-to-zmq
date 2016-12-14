@@ -1,6 +1,6 @@
 # A beginner's guide to ZeroMQ 
 
-Note: This is my own cheat sheet guide to learning ZeroMQ. I have picked out key examples and concepts necessary for a beginner to grasp from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
+### Note: I have prepared this simple guide to learning ZeroMQ for beginners. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
 ---
 [[Korean](/easy_zmq_ko.md)] [[English](/easy_zmq2.md)]
 
@@ -14,13 +14,17 @@ Note: This is my own cheat sheet guide to learning ZeroMQ. I have picked out key
 [Push/Pull Pattern을 이용한 Parallel Pipeline](#Push/Pull Pattern을 이용한 Parallel Pipeline)  
 
 ---
+## ZeroMQ?
+* 가볍고 빠른 queue-based messaging library
+* 30개 이상의 언어에서 사용 가능
+
 
 ## 4가지 주요 메시지 패턴
-ZeroMQ에는 4가지 주요 메시자 패턴이 있습니다.
-
+ZeroMQ에는 4가지 주요 메시지 패턴이 있습니다.  
 
 ### Exclusive PAIR Pattern
 ---
+
 Exclusive PAIR Pattern 에서는 client와 server가 1:1 관계로, 서로를 상대로만 통신 가능합니다. client는 여러개의 server와 네트워킹을 할수가 없고, server는 여러개의 client와 통신 할 수 없습니다. 다만, client-sever pair 사이에서 client는 server가 메시지를 전송 받은 여부와 상관 없이, 연속으로 메시지가 가능하며 이부분은 아래 예제 코드를 통해서 확인 할 수 있습니다.
 
 아래 *Exclusive PAIR Pattern* 코드에서 client가 1초마다 메시지를 2번 송신하고, response에 상관없이 server는 1초마다 메시지를 송신합니다.
@@ -360,7 +364,7 @@ print("Average messagedata value for topic '%s' was %dF" % (topicfilter, total_v
 
 ```
 
-Second subscriber has topic filter set at "10001" 
+Second subscriber has topic filter set at "10000" 
 ```python
 # sub_client2.py
 
@@ -405,8 +409,7 @@ python sub_client.py 5546
 
 ![push pull](/images/push-pull.PNG)
 
-**Push/Pull Pattern**은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 형태입니다. 
-Push socket이 worker에게 메시지를 전송하고, worker는 최종 recipient에게 메시지를 전송하는 flow입니다. 
+**Push/Pull Pattern**은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 One way communication입니다. Push socket이 worker에게 메시지를 전송하고, worker는 최종 recipient에게 메시지를 전송하는 flow입니다. 
 
 Producer는 consumer에게 메시지를 *Push* 합니다. 
 
@@ -480,7 +483,7 @@ def result_collector():
     collecter_data = {}
 
     # 1000번째까지만 메시지를 PULL함 
-    for x in xrange(1000):
+    for x in range(1000):
         result = results_receiver.recv_json()
         if result['consumer'] in collecter_data:
             collecter_data[result['consumer']] = collecter_data[result['consumer']] + 1
@@ -519,7 +522,7 @@ I am consumer #567
 
 ---
 
-## 응용 
+## Case scenario
 
 지금까지 리뷰한 네가지 메시지 패턴을 조금 응용한 케이스를 살펴보도록 하겠습니다.   
 ---
