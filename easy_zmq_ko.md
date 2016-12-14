@@ -7,11 +7,14 @@
 ###### Table of Contents
 
 [Exclusive PAIR Pattern](#exclusive-pair-pattern)  
-[Request/Reply Pattern](#request/reply-pattern)  
-[Publish/Subscribe Pattern](#Publish/Subscribe Pattern)  
-[Push/Pull Pattern](#Push/Pull Pattern)  
-[브로커를 이용한 Request-Reply Pattern](#브로커를 이용한 Request-Reply Pattern)  
-[Push/Pull Pattern을 이용한 Parallel Pipeline](#Push/Pull Pattern을 이용한 Parallel Pipeline)  
+[Request/Reply Pattern](#requestreply-pattern)  
+[Publish/Subscribe Pattern](#publishsubscribe-pattern)  
+[Push/Pull Pattern](#pushpull-pattern)  
+[브로커를 이용한 Request-Reply Pattern](#브로커를-이용한-request-reply-pattern)  
+[Push/Pull Pattern을 이용한 Parallel Pipeline](#pushpull-pattern을-이용한-Parallel-Pipeline)  
+[Request/Reply pattern 이용한 Reliable networking](#requestreply-pattern-이용한-reliable-networking)
+
+
 ---
 
 ## ZeroMQ
@@ -833,7 +836,7 @@ context.term() # terminate
 ```
 
 
-### Request-Reply pattern 이용한 Reliable networking
+### Request/Reply pattern 이용한 Reliable networking
 
 Reliable networking 이란 코드가 break하거나 잘 돌아가지 않는 상황에도 네크워킹이 유지 될 수 있도록 하는 것입니다. 예를들면, Server에 장애가 생기면, Client가 서버에 문제가 생긴 걸 알고 기다리거나 다시 connection을 시도 하는 등 다른 방법을 시도 할 수 있게 하는 것입니다. 
 
