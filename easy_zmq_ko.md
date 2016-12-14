@@ -16,7 +16,7 @@ Note: I have prepared this simple guide to learning ZeroMQ for beginners. The ke
 ---
 ## ZeroMQ?
 * 가볍고 빠른 queue-based messaging library
-* 30개 이상의 언어에서 사용 가능
+* 30개 이상의 언어에서 사용 가능 
 
 
 ## 4가지 주요 메시지 패턴
