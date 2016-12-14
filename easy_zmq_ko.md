@@ -1,6 +1,6 @@
 # A beginner's guide to ZeroMQ 
 
-### Note: I have prepared this simple guide to learning ZeroMQ for beginners. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
+Note: I have prepared this simple guide to learning ZeroMQ for beginners. The key concepts and examples used in this guide are referenced from [ZeroMQ official guide](http://zguide.ZeroMQ.org/page:all) and [Learning ØMQ with pyzmq](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/). All the source code included here are in python3. 
 ---
 [[Korean](/easy_zmq_ko.md)] [[English](/easy_zmq2.md)]
 
@@ -24,6 +24,8 @@ ZeroMQ에는 4가지 주요 메시지 패턴이 있습니다.
 
 ### Exclusive PAIR Pattern
 ---
+
+![pair](/images/pair1.png)  
 
 Exclusive PAIR Pattern 에서는 client와 server가 1:1 관계로, 서로를 상대로만 통신 가능합니다. client는 여러개의 server와 네트워킹을 할수가 없고, server는 여러개의 client와 통신 할 수 없습니다. 다만, client-sever pair 사이에서 client는 server가 메시지를 전송 받은 여부와 상관 없이, 연속으로 메시지가 가능하며 이부분은 아래 예제 코드를 통해서 확인 할 수 있습니다.
 
@@ -70,6 +72,8 @@ while True:
 ```
 
 ### Request/Reply Pattern
+
+![req](/images/pair2.png)  
 
 **Request/Reply pattern** 에서는 client가 request를 보내고 server가 request에 대한 reply를 하는 패턴입니다. 이 둘의 관계는 순차적이여서 client 가 request를 보낸 경우에만 server에서 reply를 하고, 마찬가지로 client 또한 server의 reply를 수신하지 않은 경우에는 메시지 `send`를 하지 않습니다. 
 
@@ -407,7 +411,7 @@ python sub_client.py 5546
 
 ### Push/Pull Pattern
 
-![push pull](/images/push-pull.PNG)
+![push](/images/pair3.png)  
 
 **Push/Pull Pattern**은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 One way communication입니다. Push socket이 worker에게 메시지를 전송하고, worker는 최종 recipient에게 메시지를 전송하는 flow입니다. 
 
@@ -648,7 +652,7 @@ Received reply 10 [b'World']
 
 
 ### Push/Pull Pattern을 이용한 Parallel Pipeline
-
+<!--![push pull](/images/push-pull.PNG)-->
 ![ventilator](/images/ventilator.PNG)
 
 Parallel Pipeline은 worker가 task를 parallel (수평) 형태로 처리하는 방법입니다. 
