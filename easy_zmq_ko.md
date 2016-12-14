@@ -324,9 +324,17 @@ if len(sys.argv) > 1:
     port =  sys.argv[1]
     int(port)
 
+if len(sys.argv) > 2:
+    port1=  sys.argv[2]
+    int(port)
+
+# PUB binds to multiple ports
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:%s" % port)
+
+if len(sys.argv) > 2:
+  socket.bind("tcp://*:%s" % port1)
 
 while True:
     topic = random.randrange(9999,10005)
@@ -335,9 +343,9 @@ while True:
     socket.send_string("%d %d" % (topic, messagedata))
     time.sleep(1)
 ```
-[TODO!!!- review this code above]
-2개의 *subscribers*는 *pub_server*가 보내는 메시지를 동일하게 받습니다. 
-다만, `sub_client1.py` 는 topic filter가 "10001"인 데이터만 받도록 지정하였고, while `sub_client2.py`는 topic filter "10000"인 데이터만 송신하도록 하였습니다. 
+
+2개의 subscribers는 pub_server가 보내는 메시지를 동일하게 받습니다. 다만, `sub_client1.py` 는 topic filter가 "10001"인 데이터만 받도록 지정하였고, `sub_client2.py`는 topic filter "10000"인 데이터만 송신하도록 하였습니다. 
+
 
 ```python
 # sub_client1.py
@@ -372,7 +380,8 @@ print("Average messagedata value for topic '%s' was %dF" % (topicfilter, total_v
 
 ```
 
-Second subscriber has topic filter set at "10000" 
+두번쨰 subscriber는 topic filter가 "10000"에 지정되었습니다.
+
 ```python
 # sub_client2.py
 
@@ -406,7 +415,7 @@ print("Average messagedata value for topic '%s' was %dF" % (topicfilter, total_v
 
 ```
 
-execute as such: 
+* Execute the scrips by running the following commands: 
 ```
 python pub_server.py 5556 5546
 python sub_client.py 5556
@@ -417,7 +426,8 @@ python sub_client.py 5546
 
 ![push](/images/pair3.png)  
 
-**Push/Pull Pattern**은 메시지를 여러 worker에게 위와 같이 pipeline을 형태로 보내는 One way communication입니다. Push socket이 worker에게 메시지를 전송하고, worker는 최종 recipient에게 메시지를 전송하는 flow입니다. 
+**Push/Pull Pattern**은 메시지를 One-way communication 형식으로 한방향으로만 보내 주는 형태입니다.
+위 그림을 참조하면 Push socket이 consumer에게 메시지를 전송하고, consumer는 최종 recipient(Result collector)에게 메시지를 전송하는 flow입니다. 
 
 Producer는 consumer에게 메시지를 *Push* 합니다. 
 
@@ -432,7 +442,7 @@ def producer():
     zmq_socket = context.socket(zmq.PUSH)
     zmq_socket.bind("tcp://127.0.0.1:5557")
 
-    # 2만번 메시지를 work_message함 
+    # 2만번 메시지 Push
     for num in range(20000):
         work_message = { 'num' : num }
         zmq_socket.send_json(work_message)
@@ -441,7 +451,7 @@ producer()
 
 ```
 
-Consumer (worker)는 먼저 1) producer로 부터 온 메시지를 Pull하고, 2) 받은 메시지를 result collector 에게 push 방법으로 전송합니다. 
+Consumer (worker)는 먼저 1) producer로 부터 온 메시지를 *Pull*하고, 2) 받은 메시지를 result collector 에게 *Push* 방법으로 전송합니다. 
 
 ```python
 # consumer.py
@@ -475,7 +485,7 @@ consumer()
 ```
 
 
-Result collector는 worker로 부터 메시지를 전송받습니다.
+Result collector는 consumer로 부터 메시지를 전송받습니다.
 
 ```python
 # resultcollector.py
@@ -503,7 +513,7 @@ def result_collector():
 result_collector()
 ```
 
-* code execution in this order:
+* Execute the scripts by running the following commands:
 ```
 python resultcollector.py
 python consumer.py 
@@ -512,28 +522,26 @@ python producer.py
 ```
 
 
-* output
-`python consumer1.py`
+* output from running `python consumer.py` in one terminal
 ```
 I am consumer #824
 ```
 
-`python consumer1.py`
+* output from running `python consumer.py` in another terminal
 ```
 I am consumer #567
 ```
 
-`python resultcollector.py`
+* output from running `python resultcollector.py`
 ```
 {824: 433, 9053: 567}
 ```
 
 ---
 
-## Case scenario
+## Advanced Examples
 
-지금까지 리뷰한 네가지 메시지 패턴을 조금 응용한 케이스를 살펴보도록 하겠습니다.   
----
+###### 지금까지 리뷰한 네가지 메시지 패턴을 응용한 케이스를 살펴보도록 하겠습니다.   
 
 
 ### 브로커를 이용한 Request-Reply Pattern
@@ -660,12 +668,11 @@ Received reply 10 [b'World']
 ![ventilator](/images/ventilator.PNG)
 
 Parallel Pipeline은 worker가 task를 parallel (수평) 형태로 처리하는 방법입니다. 
-*Ventilator*는 먼저 task를 *workers*에게 Push 하고, *Workers* 는 task를 처리하고 결과를 *Sink*에게 보내줍니다. 
+Ventilator는 먼저 task를 worker에게 Push 하고, worker는 task를 처리하고 결과를 sink에게 보내줍니다. 
 
-또한, task processing이 끝나면, worker를 kill하는 부분도 살펴 보겠습니다. *Sink*는 *worker* 의 모든 task가 끝난 시점을 파악하여 PUB socket을 이용하여 메시지를 전송합니다. 
+동시에, worker와 sink는 Publish/Subscribe 패턴을 메시지를 통하여 task processing 끝난 여부를 판단하고, sink에서 worker로 Kill signal 도 보내주는 역활을 합니다.  
 
-
-아래 코드에서 *Ventilator*는 PUSH socket을 만들어서 port 5558에 `bind`합니다.  
+아래 코드에서 Ventilator는 PUSH socket을 port 5558에 `bind`합니다.  
 
 ```python
 # ventilator.py
@@ -716,7 +723,7 @@ print("Total expected cost: %s msec" % total_msec)
 time.sleep(1)
 ```
 
-*Worker* 는 task를 pull 한후 Sink 에게 다시 전송합니다. 
+Worker 는 task를 pull 한후 Sink 에게 다시 전송합니다. 
 
 ```python
 # worker.py
@@ -776,7 +783,7 @@ controller.close()
 context.term()
 ```
 
-*sink* 에서는 언제 *worker*에게 'kill' 메시지를 전송할지 결정합니다.
+Sink 에서는 언제 *worker*에게 'Kill' 메시지를 전송할지 결정합니다.
 
 ```python
 # sink.py
@@ -787,11 +794,11 @@ import zmq
 
 context = zmq.Context()
 
-# *Worker*로부터 메시지 받기 위한 PULL Socket 
+# Worker로부터 메시지 받기 위한 PULL Socket 
 receiver = context.socket(zmq.PULL)
 receiver.bind("tcp://*:5558")
 
-# *Worker*에게 메시지 Publish 하기 위한 PUB Socket
+# Worker에게 메시지 Publish 하기 위한 PUB Socket
 controller = context.socket(zmq.PUB)
 controller.bind("tcp://*:5559")
 
@@ -832,7 +839,12 @@ Reliable networking 이란 코드가 break하거나 잘 돌아가지 않는 상�
 
 방법은 여러 방법이 있지만 먼저 **1. brute force (lazy pirate pattern)** 를 이용할수 있습니다. 
 
-아래 예제 코드는 Client가 REQ 에러를 encounter 한 후, REQ socket을 다시 닫고 열어보는 방법을 구현 한 것 입니다. 총 3번 까지 시도를 하고 그 이후에도 서버 에러가 있는 경우에는 프로세스가 terminate됩니다. 
+아래 예제 코드는 Client가 REQ 에러를 encounter 한 후, REQ socket을 다시 닫고 열어보는 방법을 구현 한 것 입니다. 
+총 3번 까지 시도를 하고 그 이후에도 서버 에러가 있는 경우에는 프로세스가 terminate됩니다. 
+
+![lazy](/images/retry.png)
+
+1. brute force (lazy pirate pattern)
 
 ```python
 # client.py
