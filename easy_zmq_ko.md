@@ -6,8 +6,8 @@
 
 ###### Table of Contents
 
-[Exclusive PAIR Pattern](#Exclusive PAIR Pattern)  
-[Request/Reply Pattern](#Request/Reply Pattern)  
+[Exclusive PAIR Pattern](#exclusive-pair-pattern)  
+[Request/Reply Pattern](#request/reply-pattern)  
 [Publish/Subscribe Pattern](#Publish/Subscribe Pattern)  
 [Push/Pull Pattern](#Push/Pull Pattern)  
 [브로커를 이용한 Request-Reply Pattern](#브로커를 이용한 Request-Reply Pattern)  
